@@ -33,14 +33,15 @@ class Player(pygame.sprite.Sprite):
     def animate(self, dt):
         """ Create the player animations """
 
-        # We have 4 walking frames, hence the 4
-        self.frame_index = int(self.frame_index + 4 * dt)
+        # Increment our frame index by an arbitrary amount: 4
+        self.frame_index = self.frame_index + 4 * dt
 
+        # If wour frame goes over the amount of animation states we have, 
+        # reset it to 0 so we restart the animation
         if self.frame_index >= len(self.animations[self.status]):
             self.frame_index = 0
 
-        self.image = self.animations[self.status][self.frame_index]
-
+        self.image = self.animations[self.status][int(self.frame_index)]
 
     def input(self):
         # Return list with keys being pressed
@@ -48,15 +49,19 @@ class Player(pygame.sprite.Sprite):
 
         if keys[pygame.K_UP]:
             self.direction.y = -1
+            self.status = "up"
         elif keys[pygame.K_DOWN]:
             self.direction.y = 1
+            self.status = "down"
         else:
             self.direction.y = 0
 
         if keys[pygame.K_RIGHT]:
             self.direction.x = 1
+            self.status = "right"
         elif keys[pygame.K_LEFT]:
             self.direction.x = -1
+            self.status = "left"
         else:
             self.direction.x = 0
 
@@ -65,6 +70,14 @@ class Player(pygame.sprite.Sprite):
             pygame.quit()
             sys.exit()
 
+    def get_status(self):
+        """ If the player is not moving, add
+        idle to the status """
+        # Status in up, down, left, right
+        if self.status in ["up", "down", "left", "right"]:
+            # Player is not moving
+            if self.direction.y == 0 and self.direction.x == 0:
+                self.status = self.status + "_idle"
 
     def move(self, dt):
         # Normalize the direction vector so speed is constant
@@ -78,8 +91,9 @@ class Player(pygame.sprite.Sprite):
         self.pos.y += self.direction.y * self.speed * dt
         self.rect.centery = self.pos.y
 
-
     def update(self, dt):
         self.input()
+        self.get_status()
+
         self.move(dt)
         self.animate(dt)
